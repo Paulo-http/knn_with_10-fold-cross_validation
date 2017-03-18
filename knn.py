@@ -14,9 +14,21 @@ def load_csv_file(filename, attr):
 	        array.append(data[x])
 	return array
 
+def cross_validation(data, times):
+	array = []
+	lenght = range(len(data)/10)
+	for x in lenght:
+		array.append(data[x+len(lenght)*times])
+	return array
+
 def main():
 	# prepare data
 	array = load_csv_file('iris', 4)
-	print array
+
+	# prepare 10-fold-cross validation
+	validation = []
+	for x in xrange(0,10):
+		validation.append(cross_validation(array, x))
+	print validation
 	
 main()	
