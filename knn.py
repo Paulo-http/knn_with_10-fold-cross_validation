@@ -13,3 +13,10 @@ def load_csv_file(filename, attr):
 	            data[x][y] = float(data[x][y])
 	        array.append(data[x])
 	return array
+
+def main():
+	# prepare data
+	array = load_csv_file('iris', 4)
+	print array
+	
+main()	
