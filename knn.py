@@ -6,9 +6,9 @@ import operator
 def load_csv_file(filename, attr):
 	array = []
 	with open(filename, 'rb') as csvfile:
-	    lines = csv.reader(csvfile)
+	    lines = csv.reader(csvfile, delimiter=';')	    
 	    data = list(lines)
-	    for x in range(len(data)):
+	    for x in range(len(data)):	    	
 	        for y in range(attr):
 	            data[x][y] = float(data[x][y])
 	        array.append(data[x])
@@ -79,54 +79,63 @@ def calc_accuracy(matrix):
 def main():
 	# prepare config
 	# config = [['iris', 4, 3], ['adult', 14, 2], ['wine', 13, 3], ['cancer', 9, 2], ['quality', 11, 11], ['abalone', 8, 29]]
-	config = [['iris', 4, 3]]
+	config = [['iris.csv', 4, 3]]
 
 	# start main loop
-	for x in range(len(config)):
+	for idx in range(len(config)):
 		# prepare data
-		filename = config[x][0]
-		attrs = config[x][1]
-		types = config[x][2]
+		filename = config[idx][0]
+		attrs = config[idx][1]
+		types = config[idx][2]
 		csv = load_csv_file(filename, attrs)		
+		length = len(csv)
 
 		# prepare 10-fold-cross validation
 		k_fold = 10
 		validation = []
-		for x in xrange(0,k_fold):
-			validation.append(cross_validation(csv, x))
+		for div in xrange(0,k_fold):
+			validation.append(cross_validation(csv, div))
 		
 		# calculating m
-		m = 0
+		m = types
 		if types%2 == 0:
-			m = types+1
-		else:
-			m = types
-				
+			m += 1
+
+		# calculating k
+		k1 = 1
+		k2 = m+2
+		k3 = (m*10)+1
+		k4 = (length/2)
+		if length%2 == 0:
+			k4 += 1
+		k = [k1, k2, k3, k4]
+		print k
+
 		# generate predictions and create matrix of confusion
-		k = 3			
-		matrix = {}
-		cross_error = 0
-		sample_error = {}
+		for knn in k:
+			matrix = {}
+			cross_error = 0
+			sample_error = {}
 
-		for x in xrange(0,k_fold):
-			test = validation[x]
-			rest = list(validation)
-			rest.pop(x)
-			neighbors = find_neighbors(test, rest, k)			
-			error = matrix_confusion(test, neighbors, matrix)
-			key = str(filename) + " p" + str(x+1)
-			sample_error[key] = error
-			cross_error += error
+			for part in xrange(0,k_fold):
+				test = validation[part]
+				rest = list(validation)
+				rest.pop(part)
+				neighbors = find_neighbors(test, rest, knn)			
+				error = matrix_confusion(test, neighbors, matrix)
+				key = str(filename) + " p" + str(part+1)
+				sample_error[key] = error
+				cross_error += error
 		
-		# show results
-		print("\n%d-knn in %s data set with %d elements:\n" % (k, filename, len(csv)))
-		print("matrix confusion:\n%s\n" % (matrix))
-		print("sample error:\n%s\n" % (sample_error))
-		print("cross validation error:\n%s\n" % (cross_error/k_fold))
+			# show results
+			print("\n%d-knn in %s data set with %d elements:\n" % (knn, filename, len(csv)))
+			print("matrix confusion:\n%s\n" % (matrix))
+			print("sample error:\n%s\n" % (sample_error))
+			print("cross validation error:\n%s\n" % (cross_error/k_fold))
 
-		if types > 2:
-			accuracy = calc_accuracy(matrix)
-			print("accuracy:\n%s\n" % (accuracy))
+			if types > 2:
+				accuracy = calc_accuracy(matrix)
+				print("accuracy:\n%s\n" % (accuracy))
 
 main()
 
