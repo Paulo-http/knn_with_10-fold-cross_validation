@@ -5,7 +5,8 @@ import operator
 
 def load_csv_file(filename, attr):
 	array = []
-	with open(filename, 'rb') as csvfile:
+	folder = "csv/"
+	with open(folder + filename, 'rb') as csvfile:
 	    lines = csv.reader(csvfile, delimiter=';')	    
 	    data = list(lines)
 	    for x in range(len(data)):	    	
@@ -87,6 +88,7 @@ def main():
 		types = config[idx][2]
 		csv = load_csv_file(filename, attrs)		
 		length = len(csv)
+		filename = filename.replace(".csv", "")
 
 		# prepare 10-fold-cross validation
 		k_fold = 10
