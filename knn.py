@@ -51,6 +51,42 @@ def matrix_confusion(test, neighbors, matrix):
 			error += mark_error(actual, predicted)
 	return error
 
+def matrix_confusion_binary(test, neighbors, matrix):
+	error = 0.0
+	classes = determine_class(test, neighbors)
+	for x in range(len(neighbors)):
+		for y in range(len(test)):
+			actual = test[y][-1]
+			predicted = neighbors[x][-1]
+			validation_class(actual, predicted, classes, matrix)
+			error += mark_error(actual, predicted)
+	return error
+
+def validation_class(actual, predicted, classes, matrix):	
+	if actual == predicted:
+		if classes[0] == classes[1]:
+			mark_class("TP", matrix)
+		else:
+			mark_class("FP", matrix)
+	elif actual != predicted:
+		if classes[0] != classes[1]:
+			mark_class("TN", matrix)
+		else:
+			mark_class("FN", matrix)
+
+def determine_class(test, neighbors):	
+	test_matrix = {}
+	neighbors_matrix = {}
+	for x in range(len(test)):
+		current = test[x][-1]
+		mark_class(current, neighbors_matrix)
+	neighbors_class = max(neighbors_matrix, key=neighbors_matrix.get)
+	for x in range(len(neighbors)):
+		current = neighbors[x][-1]
+		mark_class(current, test_matrix)
+	test_class = max(test_matrix, key=test_matrix.get)
+	return [test_class, neighbors_class]
+
 def mark_class(current, matrix):
 	if current in matrix:
 		matrix[current] += 1			
@@ -77,18 +113,17 @@ def calc_accuracy(matrix):
 
 def main():
 	# prepare config
-	# config = [['iris', 4, 3], ['adult', 14, 2], ['wine', 13, 3], ['cancer', 9, 2], ['quality', 11, 11], ['abalone', 8, 29]]
-	config = [['iris.csv', 4, 3]]
+	# config = [['iris.csv', 4, 3], ['wine.csv', 13, 3], ['cancer.csv', 9, 2], ['quality.csv', 11, 11], ['abalone.csv', 8, 29], ['adult.csv', 14, 2]]
+	config = [['cancer.csv', 9, 2]]
 
 	# start main loop
 	for idx in range(len(config)):
 		# prepare data
 		filename = config[idx][0]
 		attrs = config[idx][1]
-		types = config[idx][2]
+		classes = config[idx][2]
 		csv = load_csv_file(filename, attrs)		
-		length = len(csv)
-		filename = filename.replace(".csv", "")
+		length = len(csv)		
 
 		# prepare 10-fold-cross validation
 		k_fold = 10
@@ -97,8 +132,8 @@ def main():
 			validation.append(cross_validation(csv, div))
 		
 		# calculating m
-		m = types
-		if types%2 == 0:
+		m = classes
+		if classes%2 == 0:
 			m += 1
 
 		# calculating k
@@ -108,8 +143,8 @@ def main():
 		k4 = (length/2)
 		if length%2 == 0:
 			k4 += 1
-		k = [k1, k2, k3, k4]
-
+		# k = [k1, k2, k3, k4]
+		k = [k1]
 		# generate predictions and create matrix of confusion
 		for knn in k:
 			matrix = {}
@@ -120,21 +155,38 @@ def main():
 				test = validation[part]
 				rest = list(validation)
 				rest.pop(part)
-				neighbors = find_neighbors(test, rest, knn)			
-				error = matrix_confusion(test, neighbors, matrix)
+				neighbors = find_neighbors(test, rest, knn)
+				error = 0
+				if classes > 2:
+					error = matrix_confusion(test, neighbors, matrix)
+				else:
+					error = matrix_confusion_binary(test, neighbors, matrix)
 				key = str(filename) + " p" + str(part+1)
 				sample_error[key] = error
 				cross_error += error
-		
+			
 			# show results
 			print("\n%d-knn in %s data set with %d elements:\n" % (knn, filename, len(csv)))
 			print("matrix confusion:\n%s\n" % (matrix))
 			print("sample error:\n%s\n" % (sample_error))
-			print("cross validation error:\n%s\n" % (cross_error/k_fold))
+			print("cross validation error:\n%s\n" % (cross_error/float(k_fold)))
 
-			if types > 2:
+			if classes > 2:
 				accuracy = calc_accuracy(matrix)
 				print("accuracy:\n%s\n" % (accuracy))
+			else:
+				tp = float(matrix.get("TP", 0))
+				fp = float(matrix.get("FP", 0))
+				tn = float(matrix.get("TN", 0))
+				fn = float(matrix.get("FN", 0))
+				sensitivity = tp/(tp+fn)
+				specificity = tn/(tn+fp)
+				precision = tp/(tp+fp)
+				recall = tp/(tp+fn)
+				print("sensitivity:\n%s\n" % (sensitivity))
+				print("specificity:\n%s\n" % (specificity))
+				print("precision:\n%s\n" % (precision))
+				print("recall:\n%s\n" % (recall))
 
 main()
 
