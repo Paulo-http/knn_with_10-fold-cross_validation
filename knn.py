@@ -64,6 +64,18 @@ def mark_error(actual, predicted):
 	else:
 		return 1
 
+def calc_accuracy(matrix):
+	hits = 0.0
+	mistakes = 0.0
+	for key in matrix:
+		classes = key.split()
+		classes.pop(1)
+		if classes[0] == classes[1]:
+			hits += matrix[key]
+		else:
+			mistakes += matrix[key]
+	return hits/(hits+mistakes)
+
 def main():
 	# prepare config
 	# config = [['iris', 4, 3], ['adult', 14, 2], ['wine', 13, 3], ['cancer', 9, 2], ['quality', 11, 11], ['abalone', 8, 29]]
@@ -77,22 +89,32 @@ def main():
 		csv = load_csv_file(filename, attrs)
 
 		# prepare 10-fold-cross validation
+		k_fold = 10
 		validation = []
-		for x in xrange(0,10):
+		for x in xrange(0,k_fold):
 			validation.append(cross_validation(csv, x))
 				
 		# generate predictions and create matrix of confusion
-		k = 1		
-		error = {}
+		k = 1			
 		matrix = {}
-		for x in xrange(0,10):
+		cross_error = 0
+		sample_error = {}
+
+		for x in xrange(0,k_fold):
 			test = validation[x]
 			rest = list(validation)
 			rest.pop(x)
-			neighbors = find_neighbors(test, rest, k)
-			key = "error p_" + str(x+1)
-			error[key] = matrix_confusion(test, neighbors, matrix)				
-		print matrix
-		print error
+			neighbors = find_neighbors(test, rest, k)			
+			error = matrix_confusion(test, neighbors, matrix)
+			key = str(filename) + " p" + str(x+1)
+			sample_error[key] = error
+			cross_error += error
+		
+		accuracy = calc_accuracy(matrix)
+
+		print("matrix confusion:\n%s\n" % (matrix))
+		print("sample error:\n%s\n" % (sample_error))
+		print("cross validation error:\n%s\n" % (cross_error/k_fold))
+		print("accuracy:\n%s\n" % (accuracy))
 
 main()
