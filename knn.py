@@ -2,6 +2,7 @@ import csv
 import random
 import math
 import operator
+import time
 
 def load_csv_file(filename, attr):
 	array = []
@@ -113,11 +114,12 @@ def calc_accuracy(matrix):
 
 def main():
 	# prepare config
-	# config = [['iris.csv', 4, 3], ['wine.csv', 13, 3], ['cancer.csv', 9, 2], ['quality.csv', 11, 11], ['abalone.csv', 8, 29], ['adult.csv', 14, 2]]
-	config = [['cancer.csv', 9, 2]]
-
+	config = [['iris.csv', 4, 3], ['wine.csv', 13, 3], ['cancer.csv', 9, 2], ['quality.csv', 11, 11], ['abalone.csv', 8, 29], ['adult.csv', 14, 2]]
+	
 	# start main loop
 	for idx in range(len(config)):
+		start = time.time()
+
 		# prepare data
 		filename = config[idx][0]
 		attrs = config[idx][1]
@@ -143,8 +145,8 @@ def main():
 		k4 = (length/2)
 		if length%2 == 0:
 			k4 += 1
-		# k = [k1, k2, k3, k4]
-		k = [k1]
+		k = [k1, k2, k3, k4]
+
 		# generate predictions and create matrix of confusion
 		for knn in k:
 			matrix = {}
@@ -187,6 +189,9 @@ def main():
 				print("specificity:\n%s\n" % (specificity))
 				print("precision:\n%s\n" % (precision))
 				print("recall:\n%s\n" % (recall))
+		
+		end = time.time()
+		print("\ntime in %s: %s seconds\n" % (filename, (end-start)))
 
 main()
 
