@@ -81,21 +81,29 @@ def main():
 	# config = [['iris', 4, 3], ['adult', 14, 2], ['wine', 13, 3], ['cancer', 9, 2], ['quality', 11, 11], ['abalone', 8, 29]]
 	config = [['iris', 4, 3]]
 
+	# start main loop
 	for x in range(len(config)):
 		# prepare data
 		filename = config[x][0]
 		attrs = config[x][1]
 		types = config[x][2]
-		csv = load_csv_file(filename, attrs)
+		csv = load_csv_file(filename, attrs)		
 
 		# prepare 10-fold-cross validation
 		k_fold = 10
 		validation = []
 		for x in xrange(0,k_fold):
 			validation.append(cross_validation(csv, x))
+		
+		# calculating m
+		m = 0
+		if types%2 == 0:
+			m = types+1
+		else:
+			m = types
 				
 		# generate predictions and create matrix of confusion
-		k = 1			
+		k = 3			
 		matrix = {}
 		cross_error = 0
 		sample_error = {}
@@ -110,11 +118,15 @@ def main():
 			sample_error[key] = error
 			cross_error += error
 		
-		accuracy = calc_accuracy(matrix)
-
+		# show results
+		print("\n%d-knn in %s data set with %d elements:\n" % (k, filename, len(csv)))
 		print("matrix confusion:\n%s\n" % (matrix))
 		print("sample error:\n%s\n" % (sample_error))
 		print("cross validation error:\n%s\n" % (cross_error/k_fold))
-		print("accuracy:\n%s\n" % (accuracy))
+
+		if types > 2:
+			accuracy = calc_accuracy(matrix)
+			print("accuracy:\n%s\n" % (accuracy))
 
 main()
+
