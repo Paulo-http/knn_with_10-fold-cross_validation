@@ -24,15 +24,15 @@ def cross_validation(data, times):
 def euclidean_distance(test, rest, length):
 	distance = 0
 	for x in range(length):
-		for y in range(len(test[x])-1):
-			distance += pow((test[x][y] - rest[x][y]), 2)
+		distance += pow((test[x] - rest[x]), 2)
 	return math.sqrt(distance)
 
 def find_neighbors(test, rest, k):
 	distances = []
 	for x in range(len(rest)):
-		result = euclidean_distance(test, rest[x], len(test))
-		distances.append((rest[x], result))
+		for y in range(len(rest[x])):
+			result = euclidean_distance(test[x], rest[x][y], len(test[x])-1)
+			distances.append((rest[x][y], result))
 	distances.sort(key=operator.itemgetter(1))
 	neighbors = []
 	for x in range(k):
@@ -41,12 +41,10 @@ def find_neighbors(test, rest, k):
 
 def matrix_confusion(test, neighbors, matrix):
 	error = 0.0
-	lenght = 0.0
 	for x in range(len(neighbors)):
-		lenght = len(neighbors[x])
-		for y in range(len(neighbors[x])):			
+		for y in range(len(test)):
 			actual = test[y][-1]
-			predicted = neighbors[x][y][-1]
+			predicted = neighbors[x][-1]
 			current = actual + " | " + predicted
 			mark_class(current, matrix)
 			error += mark_error(actual, predicted)
@@ -109,7 +107,6 @@ def main():
 		if length%2 == 0:
 			k4 += 1
 		k = [k1, k2, k3, k4]
-		print k
 
 		# generate predictions and create matrix of confusion
 		for knn in k:
